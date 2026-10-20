@@ -1,0 +1,6 @@
+{
+  "name": "Best Food In Multan",
+  "description": "Bilingual restaurant discovery, menu explorer, and food ordering platform for Multan, Pakistan with customer tracking, restaurant portal, and admin management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

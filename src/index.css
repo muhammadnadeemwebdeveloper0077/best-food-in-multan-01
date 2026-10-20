@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-urdu: 'Noto Nastaliq Urdu', 'Noto Sans Arabic', serif;
+  }
+}
+
+.font-urdu {
+  font-family: var(--font-urdu);
+  line-height: 1.9;
+}
+
+[dir="rtl"] {
+  font-family: var(--font-urdu);
+  letter-spacing: normal;
+}
+
+[dir="rtl"] input,
+[dir="rtl"] textarea,
+[dir="rtl"] select,
+[dir="rtl"] button {
+  font-family: var(--font-urdu);
+}
+
+[dir="rtl"] .font-mono,
+[dir="rtl"] .tabular-nums {
+  font-family: 'JetBrains Mono', monospace;
+  direction: ltr;
+  display: inline-block;
+}
+
+/* Smooth transitions */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
