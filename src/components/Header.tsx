@@ -105,6 +105,19 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCart }) => {
           >
             {language === 'ur' ? 'ایڈمن پینل' : 'Admin Panel'}
           </button>
+
+          <button
+            onClick={() => {
+              handleNavClick('explore');
+              setTimeout(() => {
+                document.getElementById('pizza-burger-finder')?.scrollIntoView({ behavior: 'smooth' });
+              }, 100);
+            }}
+            className="cursor-pointer transition-all whitespace-nowrap px-3 py-1.5 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs flex items-center gap-1.5 border border-amber-300 shadow-2xs"
+          >
+            <span>🍕🍔</span>
+            <span>{language === 'ur' ? 'پرائس فائنڈر' : 'Price Finder'}</span>
+          </button>
         </nav>
 
         {/* Zone 3: Actions (Language toggle, Role Switcher, Cart Drawer button) */}

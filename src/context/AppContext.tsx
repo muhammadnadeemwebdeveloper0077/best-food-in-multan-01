@@ -57,10 +57,11 @@ interface AppContextType {
   createOrder: (orderData: Omit<Order, 'id' | 'createdAt' | 'status'>) => Order;
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
 
-  // Owner operations
+  // Owner / Admin Item operations
   toggleItemAvailability: (itemId: string) => void;
   updateMenuItem: (item: MenuItem) => void;
   addMenuItem: (item: MenuItem) => void;
+  deleteMenuItem: (itemId: string) => void;
   updateRestaurantSettings: (updated: Partial<Restaurant> & { id: string }) => void;
 
   // Admin operations
@@ -70,6 +71,11 @@ interface AppContextType {
   addRestaurant: (newRest: Restaurant) => void;
   importRestaurantsFromCSV: (csvText: string) => { added: number; error?: string };
   exportRestaurantsCSV: () => string;
+  exportRestaurantsJSON: () => string;
+  exportMenuItemsCSV: () => string;
+  exportMenuItemsJSON: () => string;
+  exportFullDatabaseJSON: () => string;
+  resetDatabaseToDefaults: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -101,12 +107,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const saved = localStorage.getItem(STORAGE_KEYS.RESTS);
       if (saved) {
         const parsed: Restaurant[] = JSON.parse(saved);
-        return parsed.map(r => {
+        const existingIds = new Set(parsed.map(r => r.id));
+        const merged: Restaurant[] = parsed.map(r => {
           const init = INITIAL_RESTAURANTS.find(ir => ir.id === r.id);
           return init
             ? {
                 ...init,
                 ...r,
+                branchName: r.branchName || init.branchName,
+                branchNameUr: r.branchNameUr || init.branchNameUr,
+                officialWebsite: r.officialWebsite || init.officialWebsite,
+                onlineOrderUrl: r.onlineOrderUrl || init.onlineOrderUrl,
+                menuUrl: r.menuUrl || init.menuUrl,
+                lastVerifiedDate: r.lastVerifiedDate || init.lastVerifiedDate,
+                priceRange: r.priceRange || init.priceRange,
+                priceRangeUr: r.priceRangeUr || init.priceRangeUr,
                 websiteUrl: r.websiteUrl || init.websiteUrl,
                 liveDealsUrl: r.liveDealsUrl || init.liveDealsUrl,
                 pastStory: r.pastStory || init.pastStory,
@@ -115,6 +130,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               }
             : r;
         });
+
+        // Add any newly created restaurants from INITIAL_RESTAURANTS not yet in user's localStorage
+        INITIAL_RESTAURANTS.forEach(ir => {
+          if (!existingIds.has(ir.id)) {
+            merged.push(ir);
+          }
+        });
+        return merged;
       }
       return INITIAL_RESTAURANTS;
     } catch {
@@ -375,6 +398,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setMenuItems(prev => [item, ...prev]);
   };
 
+  const deleteMenuItem = (itemId: string) => {
+    setMenuItems(prev => prev.filter(i => i.id !== itemId));
+  };
+
   const updateRestaurantSettings = (updated: Partial<Restaurant> & { id: string }) => {
     setRestaurants(prev =>
       prev.map(r => (r.id === updated.id ? { ...r, ...updated } : r))
@@ -480,14 +507,61 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const exportRestaurantsCSV = () => {
-    const headers = 'id,name,name_ur,neighbourhood,address,phone,whatsapp,min_order_pkr,delivery_fee_pkr,is_verified,is_published\n';
+    const headers = 'id,name,name_ur,branch,neighbourhood,address,phone,whatsapp,price_range,website,order_url,last_verified,min_order_pkr,delivery_fee_pkr,is_verified,is_published\n';
     const rows = restaurants
       .map(
         r =>
-          `"${r.id}","${r.name}","${r.nameUr}","${r.neighbourhood}","${r.address.replace(/"/g, '""')}","${r.phone}","${r.whatsapp}",${r.minOrderPKR},${r.deliveryFeePKR},${r.isVerified},${r.isPublished}`
+          `"${r.id}","${r.name.replace(/"/g, '""')}","${(r.nameUr || '').replace(/"/g, '""')}","${(r.branchName || '').replace(/"/g, '""')}","${r.neighbourhood}","${r.address.replace(/"/g, '""')}","${r.phone}","${r.whatsapp}","${r.priceRange || ''}","${r.websiteUrl || r.officialWebsite || ''}","${r.onlineOrderUrl || ''}","${r.lastVerifiedDate || ''}",${r.minOrderPKR},${r.deliveryFeePKR},${r.isVerified},${r.isPublished}`
       )
       .join('\n');
     return headers + rows;
+  };
+
+  const exportRestaurantsJSON = () => {
+    return JSON.stringify(restaurants, null, 2);
+  };
+
+  const exportMenuItemsCSV = () => {
+    const headers = 'id,restaurant_id,name,name_ur,category,price_pkr,original_price_pkr,deal_badge,pizza_size,burger_type,is_available,verified_price,updated_at,order_url,description\n';
+    const rows = menuItems
+      .map(
+        item =>
+          `"${item.id}","${item.restaurantId}","${item.name.replace(/"/g, '""')}","${(item.nameUr || '').replace(/"/g, '""')}","${item.category}",${item.pricePKR},${item.originalPricePKR || ''},"${item.dealBadge || ''}","${item.pizzaSize || ''}","${item.burgerType || ''}",${item.isAvailable},${!!item.verifiedPrice},"${item.updatedAt || ''}","${item.orderUrl || ''}","${(item.description || '').replace(/"/g, '""')}"`
+      )
+      .join('\n');
+    return headers + rows;
+  };
+
+  const exportMenuItemsJSON = () => {
+    return JSON.stringify(menuItems, null, 2);
+  };
+
+  const exportFullDatabaseJSON = () => {
+    return JSON.stringify(
+      {
+        database: 'Best Food In Multan - Verified Restaurant & Price Directory',
+        city: 'Multan, Punjab, Pakistan',
+        exportedAt: new Date().toISOString(),
+        version: '2.5.0',
+        statistics: {
+          totalRestaurants: restaurants.length,
+          totalMenuItems: menuItems.length,
+          totalPizzas: menuItems.filter(i => i.category === 'pizza' || i.pizzaSize).length,
+          totalBurgers: menuItems.filter(i => i.category === 'burgers' || i.burgerType).length,
+        },
+        restaurants,
+        menuItems,
+      },
+      null,
+      2
+    );
+  };
+
+  const resetDatabaseToDefaults = () => {
+    localStorage.removeItem(STORAGE_KEYS.RESTS);
+    localStorage.removeItem(STORAGE_KEYS.ITEMS);
+    setRestaurants(INITIAL_RESTAURANTS);
+    setMenuItems(INITIAL_MENU_ITEMS);
   };
 
   return (
@@ -523,6 +597,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         toggleItemAvailability,
         updateMenuItem,
         addMenuItem,
+        deleteMenuItem,
         updateRestaurantSettings,
         toggleVerifyRestaurant,
         togglePublishRestaurant,
@@ -530,6 +605,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addRestaurant,
         importRestaurantsFromCSV,
         exportRestaurantsCSV,
+        exportRestaurantsJSON,
+        exportMenuItemsCSV,
+        exportMenuItemsJSON,
+        exportFullDatabaseJSON,
+        resetDatabaseToDefaults,
       }}
     >
       {children}

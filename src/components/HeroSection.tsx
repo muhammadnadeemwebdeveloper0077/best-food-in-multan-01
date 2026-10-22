@@ -156,6 +156,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               <Tag className="w-3.5 h-3.5 text-rose-400" />
               <span>14th Street Pizza Live Deals Updated</span>
             </div>
+            <span aria-hidden="true" className="text-neutral-600">·</span>
+            <a
+              href="#pizza-burger-finder"
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-300 font-bold transition-all text-xs"
+            >
+              <span>🍕🍔</span>
+              <span>{language === 'ur' ? 'پیزا اور برگر بجٹ سرچ' : 'Pizza & Burger Price Finder'}</span>
+            </a>
           </div>
         </div>
       </div>

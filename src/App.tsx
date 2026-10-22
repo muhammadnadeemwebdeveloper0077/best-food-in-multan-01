@@ -16,6 +16,7 @@ import { SingleRestaurantModal } from './components/SingleRestaurantModal';
 import { OrderTrackingView } from './components/OrderTrackingView';
 import { RestaurantOwnerDashboard } from './components/RestaurantOwnerDashboard';
 import { AdminDashboard } from './components/AdminDashboard';
+import { PizzaBurgerPriceFinder } from './components/PizzaBurgerPriceFinder';
 import { Footer } from './components/Footer';
 import { CuisineCategory, MenuItem, MultanNeighbourhood, Restaurant } from './types';
 import { translations, categoryLabels, neighbourhoodLabels } from './utils/translations';
@@ -34,6 +35,7 @@ function MainApp() {
     selectedRestaurantId,
     setSelectedRestaurantId,
     forceAddToCartAndClear,
+    addToCart,
   } = useApp();
 
   const t = translations[language];
@@ -102,6 +104,15 @@ function MainApp() {
     }
   };
 
+  const handlePriceFinderSelectItem = (item: MenuItem, restaurant: Restaurant) => {
+    const result = addToCart(item, 1);
+    if (!result.success && result.conflictingRestaurant) {
+      handleConflict(item, result.conflictingRestaurant);
+    } else {
+      setIsCartOpen(true);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-neutral-50 text-neutral-900 selection:bg-amber-100 selection:text-amber-900">
       {/* Top Bar Contract Compliant Header */}
@@ -117,6 +128,12 @@ function MainApp() {
               setSearchQuery={setSearchQuery}
               selectedNeighbourhood={selectedNeighbourhood}
               setSelectedNeighbourhood={setSelectedNeighbourhood}
+            />
+
+            {/* 🍕 Pizza & 🍔 Burger Price Finder (Prominent Top Section) */}
+            <PizzaBurgerPriceFinder
+              onSelectItem={handlePriceFinderSelectItem}
+              onSelectRestaurant={handleSelectRestaurant}
             />
 
             {/* Category Filter Bar */}

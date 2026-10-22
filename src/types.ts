@@ -27,7 +27,10 @@ export type MultanNeighbourhood =
   | 'Model Town'
   | 'Mumtazabad'
   | 'Northern Bypass'
-  | 'Old City (Ghanta Ghar)';
+  | 'Old City (Ghanta Ghar)'
+  | 'New Multan'
+  | 'Wapda Town'
+  | 'Shalimar Colony';
 
 export interface MenuItemOption {
   name: string;
@@ -38,6 +41,9 @@ export interface MenuItemOption {
     priceDelta: number;
   }[];
 }
+
+export type PizzaSize = 'small' | 'medium' | 'large' | 'family' | 'monster_slice';
+export type BurgerType = 'chicken' | 'zinger' | 'beef' | 'cheese' | 'egg_shami';
 
 export interface MenuItem {
   id: string;
@@ -56,6 +62,12 @@ export interface MenuItem {
   options?: MenuItemOption[];
   dealBadge?: string;
   originalPricePKR?: number;
+  pizzaSize?: PizzaSize;
+  burgerType?: BurgerType;
+  verifiedPrice?: boolean;
+  updatedAt?: string;
+  orderUrl?: string;
+  menuUrl?: string;
 }
 
 export interface HeritageStory {
@@ -97,6 +109,14 @@ export interface Restaurant {
   ownerEmail: string;
   openingHours: string;
   websiteUrl?: string;
+  branchName?: string;
+  branchNameUr?: string;
+  officialWebsite?: string;
+  onlineOrderUrl?: string;
+  menuUrl?: string;
+  lastVerifiedDate?: string;
+  priceRange?: string;
+  priceRangeUr?: string;
   liveDealsUrl?: string;
   activeDealBanner?: string;
   activeDealBannerUr?: string;
